@@ -1,4 +1,4 @@
-const port = 4000;
+const port = process.env.PORT || 4000;
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -6,12 +6,14 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+require("dotenv").config();
+
 
 app.use(express.json());
 app.use(cors());
 
 // Database Connection
-mongoose.connect("mongodb+srv://lakshayaroradev:lakshay2004@cluster0.cxwaxcv.mongodb.net/e-commerce")
+mongoose.connect(process.env.MONGODB_URI);
 
 // Root API
 app.get("/", (req, res) => {
