@@ -5,9 +5,8 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
-const cors = require('cors');
+const cors = require("cors");
 require("dotenv").config();
-
 
 app.use(express.json());
 app.use(cors());
@@ -17,21 +16,21 @@ mongoose.connect(process.env.MONGODB_URI);
 
 // Root API
 app.get("/", (req, res) => {
-  res.send("Express App is Running")
-})
+  res.send("Express App is Running");
+});
 
 // Image Storage Engine
 const storage = multer.diskStorage({
   destination: './upload/images',
   filename: (req, file, cb) => {
-    return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+    return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
   }
-})
+});
 
-const upload = multer({ storage: storage })
+const upload = multer({ storage: storage });
 
 // Static images path
-app.use('/images', express.static('upload/images'))
+app.use('/images', express.static('upload/images'));
 
 // Upload API
 app.post("/upload", upload.single('product'), (req, res) => {
@@ -41,9 +40,12 @@ app.post("/upload", upload.single('product'), (req, res) => {
       message: "No file uploaded"
     });
   }
+
+  // ✅ Use SERVER_URL if provided, otherwise fallback to localhost
+  const serverUrl = process.env.SERVER_URL || `http://localhost:${port}`;
   res.json({
     success: 1,
-    image_url: `http://localhost:${port}/images/${req.file.filename}`
+    image_url: `${serverUrl}/images/${req.file.filename}`
   });
 });
 
@@ -57,14 +59,14 @@ const Product = mongoose.model("Product", {
   old_price: { type: Number, required: true },
   date: { type: Date, default: Date.now },
   available: { type: Boolean, default: true }
-})
+});
 
 // Delete product
 app.post('/removeproduct', async (req, res) => {
   await Product.findOneAndDelete({ id: req.body.id });
   console.log("Removed");
-  res.json({ success: true, name: req.body.name })
-})
+  res.json({ success: true, name: req.body.name });
+});
 
 // Add product
 app.post('/addproduct', async (req, res) => {
@@ -85,15 +87,15 @@ app.post('/addproduct', async (req, res) => {
     old_price: req.body.old_price,
   });
   await product.save();
-  res.json({ success: true, name: req.body.name })
-})
+  res.json({ success: true, name: req.body.name });
+});
 
 // Get all products
 app.get('/allproducts', async (req, res) => {
   let products = await Product.find({});
   console.log("All Products Fetched");
   res.send(products);
-})
+});
 
 // User Schema
 const Users = mongoose.model('Users', {
@@ -102,13 +104,13 @@ const Users = mongoose.model('Users', {
   password: String,
   cartData: { type: Object },
   date: { type: Date, default: Date.now }
-})
+});
 
 // Signup
 app.post('/signup', async (req, res) => {
   let check = await Users.findOne({ email: req.body.email });
   if (check) {
-    return res.status(400).json({ success: false, errors: "existing user found with same emailID" })
+    return res.status(400).json({ success: false, errors: "existing user found with same emailID" });
   }
 
   let cart = {};
@@ -121,14 +123,14 @@ app.post('/signup', async (req, res) => {
     email: req.body.email,
     password: req.body.password,
     cartData: cart,
-  })
+  });
 
   await user.save();
 
-  const data = { user: { id: user.id } }
+  const data = { user: { id: user.id } };
   const token = jwt.sign(data, 'secret_ecom');
-  res.json({ success: true, token })
-})
+  res.json({ success: true, token });
+});
 
 // Login
 app.post('/login', async (req, res) => {
@@ -136,16 +138,16 @@ app.post('/login', async (req, res) => {
   if (user) {
     const passCompare = req.body.password === user.password;
     if (passCompare) {
-      const data = { user: { id: user.id } }
-      const token = jwt.sign(data, 'secret_ecom')
+      const data = { user: { id: user.id } };
+      const token = jwt.sign(data, 'secret_ecom');
       res.json({ success: true, token });
     } else {
       res.json({ success: false, errors: "Wrong Password" });
     }
   } else {
-    res.json({ success: false, errors: "Wrong Email Id" })
+    res.json({ success: false, errors: "Wrong Email Id" });
   }
-})
+});
 
 // New collection
 app.get('/newcollection', async (req, res) => {
@@ -195,7 +197,7 @@ app.post('/addtocart', fetchUser, async (req, res) => {
     console.error("Add to Cart Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
-})
+});
 
 // Remove from Cart
 app.post('/removefromcart', fetchUser, async (req, res) => {
@@ -233,8 +235,8 @@ app.post('/getcart', fetchUser, async (req, res) => {
 
 app.listen(port, (error) => {
   if (!error) {
-    console.log("Server running on port " + port)
+    console.log("Server running on port " + port);
   } else {
-    console.log("Error : " + error)
+    console.log("Error : " + error);
   }
-})
+});
